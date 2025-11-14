@@ -441,9 +441,8 @@ docker-compose up -d
 
 ## 📧 Contact
 
-Your Name - [@yourtwitter](https://twitter.com/yourtwitter)
 
-Project Link: [https://github.com/yourusername/task-manager](https://github.com/yourusername/task-manager)
+Project Link: [https://github.com/yourusername/task-manager](https://github.com/zerbouhyoussef/task-manager)
 
 ---
 
