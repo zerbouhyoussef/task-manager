@@ -34,7 +34,7 @@ The system consists of 5 interconnected services:
 - `task_completed`: Completed tasks from Worker → Notifier
 - `task_updated`: Task updates from API (not consumed yet)
 
-## 🚀 Features
+## Features
 
 - ✅ RESTful API for task CRUD operations
 - ✅ Asynchronous task processing with RabbitMQ
@@ -56,7 +56,7 @@ The system consists of 5 interconnected services:
 ### 1. Clone the Repository
 
 ```bash
-git clone <your-repo-url>
+git clone git@github.com:zerbouhyoussef/task-manager.git
 cd task-manager
 ```
 
