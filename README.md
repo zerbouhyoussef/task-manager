@@ -427,10 +427,6 @@ docker-compose up -d
 - [ ] Add dead letter queues
 - [ ] Set up proper logging (ELK stack)
 
-## 📝 License
-
-[Your License Here]
-
 ## 👥 Contributing
 
 1. Fork the repository
