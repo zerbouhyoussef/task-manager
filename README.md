@@ -34,7 +34,7 @@ The system consists of 5 interconnected services:
 - `task_completed`: Completed tasks from Worker → Notifier
 - `task_updated`: Task updates from API (not consumed yet)
 
-## 🚀 Features
+## Features
 
 - ✅ RESTful API for task CRUD operations
 - ✅ Asynchronous task processing with RabbitMQ
@@ -56,7 +56,7 @@ The system consists of 5 interconnected services:
 ### 1. Clone the Repository
 
 ```bash
-git clone <your-repo-url>
+git clone git@github.com:zerbouhyoussef/task-manager.git
 cd task-manager
 ```
 
@@ -427,10 +427,6 @@ docker-compose up -d
 - [ ] Add dead letter queues
 - [ ] Set up proper logging (ELK stack)
 
-## 📝 License
-
-[Your License Here]
-
 ## 👥 Contributing
 
 1. Fork the repository
@@ -441,9 +437,8 @@ docker-compose up -d
 
 ## 📧 Contact
 
-Your Name - [@yourtwitter](https://twitter.com/yourtwitter)
 
-Project Link: [https://github.com/yourusername/task-manager](https://github.com/yourusername/task-manager)
+Project Link: [https://github.com/zerbouhyoussef/task-manager](https://github.com/zerbouhyoussef/task-manager)
 
 ---
 
