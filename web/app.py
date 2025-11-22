@@ -29,11 +29,33 @@ class Task(db.Model):
 
 # --- Configuración de RabbitMQ ---
 RABBITMQ_URL = os.environ.get('RABBITMQ_URL')
+
 def publish_message(queue_name, message):
     try:
         connection = pika.BlockingConnection(pika.URLParameters(RABBITMQ_URL))
         channel = connection.channel()
-        channel.queue_declare(queue=queue_name, durable=True)
+
+        # Declare DLX and failed queue (Idempotent)
+        channel.exchange_declare(exchange='dlx_tasks', exchange_type='direct')
+        channel.queue_declare(queue='tasks_failed', durable=True)
+        channel.queue_bind(
+            queue='tasks_failed',
+            exchange='dlx_tasks',
+            routing_key='tasks_failed'
+        )
+
+        if queue_name == 'task_created':
+            channel.queue_declare(
+                queue='task_created',
+                durable=True,
+                arguments={
+                    'x-dead-letter-exchange': 'dlx_tasks',
+                    'x-dead-letter-routing-key': 'tasks_failed'
+                }
+            )
+        else:
+            channel.queue_declare(queue=queue_name, durable=True)
+
         channel.basic_publish(
             exchange='',
             routing_key=queue_name,
@@ -53,20 +75,26 @@ def get_tasks():
 
 @app.route('/tasks', methods=["POST"])
 def create_task():
-    if not request.json or not 'title' in request.json:
-        return jsonify({'error': 'Bad request: title is required'}), 400
+    # Validation disabled for DLX testing
+    # if not request.json or not 'title' in request.json:
+    #     return jsonify({'error': 'Bad request: title is required'}), 400
+
+    title = request.json.get('title')
+    # Use a default title for DB to avoid NotNull violation, but send raw message to MQ
+    db_title = title if title else "Untitled (Testing DLX)"
 
     new_task = Task(
-        title=request.json['title'],
+        title=db_title,
         description=request.json.get('description', "")
     )
     db.session.add(new_task)
     db.session.commit()
 
     # Publicar mensaje en RabbitMQ
-    publish_message('task_created', new_task.to_dict())
+    # Send raw request to preserve missing title for DLX test
+    publish_message('task_created', request.json)
 
-    return jsonify({'task': new_task.to_dict()}), 201
+    return jsonify({'task': new_task.to_dict(), 'note': 'Validation disabled, sent raw message to RabbitMQ'}), 201
 
 # --- Endpoint para actualizar una tarea ---
 @app.route('/tasks/<int:task_id>', methods=['PUT'])

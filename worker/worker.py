@@ -18,12 +18,42 @@ def main():
             time.sleep(5)
 
     channel = connection.channel()
-    channel.queue_declare(queue='task_created', durable=True)
+
+    # Declare Dead Letter Exchange
+    channel.exchange_declare(exchange='dlx_tasks', exchange_type='direct')
+
+    # Declare the failed queue
+    channel.queue_declare(queue='tasks_failed', durable=True)
+
+    # Bind the failed queue to the DLX
+    channel.queue_bind(
+        queue='tasks_failed',
+        exchange='dlx_tasks',
+        routing_key='tasks_failed'
+    )
+
+    # Declare the main queue with DLX arguments
+    channel.queue_declare(
+        queue='task_created',
+        durable=True,
+        arguments={
+            'x-dead-letter-exchange': 'dlx_tasks',
+            'x-dead-letter-routing-key': 'tasks_failed'
+        }
+    )
     channel.queue_declare(queue='task_completed', durable=True)
 
     def callback(ch, method, properties, body):
         task_data = json.loads(body)
-        print(f" [x] Recibido y procesado nuevo task: ID={task_data.get('id')}, Título='{task_data.get('title')}'")
+
+        # Reject message if missing title
+        if 'title' not in task_data:
+            print("[!] Invalid message → sending to DLQ")
+            ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
+            return
+
+        # Normal processing
+        print(f"[x] Processed task: {task_data.get('title')}")
         # Aquí iría la lógica de procesamiento (enviar email, etc.)
         print(f" [x] Task completada: ID={task_data.get('id')}, Título='{task_data.get('title')}'")
         

@@ -59,6 +59,17 @@ services:
       - mq
       - web
       - worker
+    
+  # Servicio del Manejador de Errores
+  error_handler:
+    build: ./error_handler
+    container_name: task-manager-error-handler
+    volumes:
+      - ./error_handler:/app # Montaje para desarrollo en vivo
+    environment:
+      - RABBITMQ_URL=amqp://guest:guest@mq:5672/%2F
+    depends_on:
+      - mq
 
 volumes:
   postgres_data:
