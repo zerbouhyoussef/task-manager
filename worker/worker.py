@@ -46,6 +46,10 @@ def main():
     def callback(ch, method, properties, body):
         task_data = json.loads(body)
 
+        # Support n8n webhook structure (data wrapped in 'body')
+        if 'body' in task_data and isinstance(task_data['body'], dict):
+            task_data = task_data['body']
+
         # Reject message if missing title
         if 'title' not in task_data:
             print("[!] Invalid message → sending to DLQ")
@@ -53,7 +57,7 @@ def main():
             return
 
         # Normal processing
-        print(f"[x] Processed task: {task_data.get('title')}")
+        print(f" [x] Recibido y procesado nuevo task: ID={task_data.get('id')}, Título='{task_data.get('title')}'")
         # Aquí iría la lógica de procesamiento (enviar email, etc.)
         print(f" [x] Task completada: ID={task_data.get('id')}, Título='{task_data.get('title')}'")
         

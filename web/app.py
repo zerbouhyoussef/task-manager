@@ -1,4 +1,3 @@
-# web/app.py
 import os
 import pika
 import json
@@ -7,12 +6,14 @@ from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 
-# --- Configuración de la Base de Datos ---
+@app.route('/')
+def index():
+    return "Hello from Task Manager API!"
+
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-# --- Modelo de la Base de Datos ---
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(120), nullable=False)
@@ -75,26 +76,20 @@ def get_tasks():
 
 @app.route('/tasks', methods=["POST"])
 def create_task():
-    # Validation disabled for DLX testing
-    # if not request.json or not 'title' in request.json:
-    #     return jsonify({'error': 'Bad request: title is required'}), 400
-
-    title = request.json.get('title')
-    # Use a default title for DB to avoid NotNull violation, but send raw message to MQ
-    db_title = title if title else "Untitled (Testing DLX)"
+    if not request.json or not 'title' in request.json:
+        return jsonify({'error': 'Bad request: title is required'}), 400
 
     new_task = Task(
-        title=db_title,
+        title=request.json['title'],
         description=request.json.get('description', "")
     )
     db.session.add(new_task)
     db.session.commit()
 
     # Publicar mensaje en RabbitMQ
-    # Send raw request to preserve missing title for DLX test
-    publish_message('task_created', request.json)
+    publish_message('task_created', new_task.to_dict())
 
-    return jsonify({'task': new_task.to_dict(), 'note': 'Validation disabled, sent raw message to RabbitMQ'}), 201
+    return jsonify({'task': new_task.to_dict()}), 201
 
 # --- Endpoint para actualizar una tarea ---
 @app.route('/tasks/<int:task_id>', methods=['PUT'])
